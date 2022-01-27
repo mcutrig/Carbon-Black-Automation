@@ -1,0 +1,72 @@
+- hosts: cbmaster.vmware.com
+  tasks:
+  - name: "Make Remote Working Directory"
+    become: true
+    become_user: root
+    command: mkdir /tmp/cb_auto/ 
+  - name: "Copy CB rpm to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_rpm/carbon-black-edr.rpm
+      dest: /tmp/cb_auto/
+  - name: "Copy CB license to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_rpm/carbon-black-edr.lic
+      dest: /tmp/cb_auto/
+  - name: "Copy CB REPO to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_repo/cachenode.vmware.com/tmp/cb_auto/yumcache.tar.gz
+      dest: /tmp/cb_auto/	  
+  - name: "Copy the answer file to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/no_feed_answer.txt
+      dest: /tmp/cb_auto/
+  - name: "Copy the expect script to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/Add_Cluster_Nodes.sh
+      dest: /tmp/cb_auto/	       
+  - name: "Untar the CB REPO"
+    become: true
+    become_user: root
+    shell: tar -xzvf /tmp/cb_auto/yumcache.tar.gz -C /
+  - name: "Install the RPM"
+    become: true
+    become_user: root
+    shell: rpm -ivh /tmp/cb_auto/carbon-black-edr.rpm
+  - name: "Update keepcache setting"
+    become: yes
+    become_user: root
+    tags: keepcache1
+    lineinfile:
+      path: /etc/yum.conf
+      # The String to Search
+      regexp: "keepcache=0" 
+      # The String to Replace
+      line: "keepcache=1"
+      state: present
+      backup: yes    
+    register: keepcache1out 
+  - name: "Install the cb-enterprise"
+    become: true
+    become_user: root
+    yum: name=cb-enterprise state=present update_cache=true 
+  - name: "Install expect"
+    become: true
+    become_user: root
+    yum: name=expect state=present update_cache=true 
+  - name: "Add Execute Permissions"
+    become: true
+    become_user: root
+    shell: chmod 755 /tmp/cb_auto/Add_Cluster_Nodes.sh      
+  - name: "Configure Carbon Black EDR Server"
+    become: true
+    become_user: root
+    command: /usr/share/cb/cbinit --no-solr-events /tmp/cb_auto/no_feed_answer.txt
+  - name: "Cleanup Remote Working Directory"
+    become: true
+    become_user: root
+    command: rm -Rf /tmp/cb_auto/
