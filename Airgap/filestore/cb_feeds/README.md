@@ -1,1 +1,0 @@
-These scripts are for OVERWRITING the threat feeds being transfered from another Carbon Black server. These scripts do not need a connection to the internet.
