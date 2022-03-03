@@ -8,6 +8,8 @@ Update the needed values for the answer.sh (This creates the answerfile in the w
 
 These scripts have been developed to work together for a cluster install WITH internet connection.
 
+The cb_auto folder will need to be in /tmp/cb_auto.
+
 The encrypted password referenced using OPENSSL in the Add_Cluster_Node script will need to be generated on your Ansible server and the passphrase updated in the script.
 
 ***EXAMPLES***
