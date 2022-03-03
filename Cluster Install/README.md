@@ -12,10 +12,11 @@ The encrypted password referenced using OPENSSL in the Add_Cluster_Node script w
 
 ***EXAMPLES***
 
+Note the password for server access is after the echo.  The passphrase used to encypt the password in this example is pass:test.  Update as needed.
+
 echo "Passw0rD@#2" | openssl enc -aes-256-cbc -md sha512 -salt -pass pass:test > /root/.secret_vault
 cat /root/.secret_valut | openssl enc -aes-256-cbc -md sha512 -d -salt -pass pass:test
 
 You will need to place your EDR RPM and license in the filestore. You can name these files for what they are referenced in the YMLs or you can adjust the YMLs to use your filenames.
-rpm and license
 
 
