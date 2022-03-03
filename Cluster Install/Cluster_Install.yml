@@ -1,0 +1,86 @@
+#Add the node to inventory (/etc/hosts if there is no DNS) and copy key from master to node ssh-copy-id {server_name}
+- hosts: master.vmware.com
+  tasks:
+  - name: "Make Remote Working Directory"
+    become: true
+    become_user: root
+    command: mkdir /tmp/cb_auto/ 
+    args:
+      warn: false    
+  - name: "Copy CB rpm to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_rpm/carbon-black-edr.rpm
+      dest: /tmp/cb_auto/
+  - name: "Copy CB license to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_rpm/carbon-black-edr.lic
+      dest: /tmp/cb_auto/
+  - name: "Copy the answer file script to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/answer.sh
+      dest: /tmp/cb_auto/
+  - name: "Add Execute Permissions to Answer File"
+    become: true
+    become_user: root
+    shell: chmod 755 /tmp/cb_auto/answer.sh 
+    args:
+      warn: false
+  - name: "Create Answer File"
+    become: true
+    become_user: root
+    command: /bin/bash /tmp/cb_auto/answer.sh   
+    args:
+      warn: false   
+  - name: "Copy the expect script to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cluster.sh
+      dest: /tmp/cb_auto/	  
+  - name: "Untar the CB REPO"
+    become: true
+    become_user: root
+    shell: tar -xzvf /tmp/cb_auto/yumcache.tar.gz -C /
+    args:
+      warn: false    
+  - name: "Install the RPM"
+    become: true
+    become_user: root
+    shell: rpm -ivh /tmp/cb_auto/carbon-black-edr.rpm
+    args:
+      warn: false  
+  - name: "Install the cb-enterprise"
+    become: true
+    become_user: root
+    yum: name=cb-enterprise state=present update_cache=true 
+  - name: "Install expect"
+    become: true
+    become_user: root
+    yum: name=expect state=present update_cache=true 
+  - name: "Add Execute Permissions to Cluster Script"
+    become: true
+    become_user: root
+    shell: chmod 755 /tmp/cb_auto/cluster.sh      
+    args:
+      warn: false    
+  - name: "Configure Carbon Black EDR Server"
+    become: true
+    become_user: root
+    command: /usr/share/cb/cbinit --no-solr-events /tmp/cb_auto/answer.txt
+  - name: "Copy CB license to CB Master Server"
+    become: true 
+    copy:
+      src: /root/filestore/cb_rpm/carbon-black-edr.lic
+      dest: /usr/share/cb/  
+  - name: "Set Up and Start Cluster"
+    become: true
+    become_user: root
+    command: /bin/expect -f /tmp/cb_auto/cluster.sh        
+  - name: "Cleanup Remote Working Directory"
+    become: true
+    become_user: root
+    command: rm -Rf /tmp/cb_auto/
+    args:
+      warn: false  
